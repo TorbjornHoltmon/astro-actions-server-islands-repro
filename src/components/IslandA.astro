@@ -1,0 +1,10 @@
+---
+// Rendered as a server island (server:defer) by src/pages/index.astro.
+import { actions } from 'astro:actions';
+import { actionA } from '../lib/hooks';
+import { plain } from '../lib/plain';
+
+const { data } = await Astro.callAction(actions.a.get, {});
+---
+
+<p id="island-a">island A: {data} ({typeof actionA}, {plain})</p>

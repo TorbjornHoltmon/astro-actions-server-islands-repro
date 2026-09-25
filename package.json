@@ -1,0 +1,17 @@
+{
+  "name": "repro",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "pnpm run generate:types",
+    "dev": "astro dev",
+    "generate:types": "wrangler types --config wrangler.jsonc"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.3",
+    "astro": "7.3.4"
+  },
+  "devDependencies": {
+    "wrangler": "4.137.0"
+  }
+}

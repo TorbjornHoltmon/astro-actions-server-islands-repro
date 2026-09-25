@@ -1,0 +1,47 @@
+diff --git a/dist/core/server-islands/vite-plugin-server-islands.js b/dist/core/server-islands/vite-plugin-server-islands.js
+index d76b16113bfe83c096f67aaed26cbdfac4d9ee70..bb388e2bdf8ffb1f9aad5b2a9b6703ea3cc6897b 100644
+--- a/dist/core/server-islands/vite-plugin-server-islands.js
++++ b/dist/core/server-islands/vite-plugin-server-islands.js
+@@ -110,8 +110,15 @@ export const serverIslandNameMap = ${serverIslandPlaceholderNameMap};`
+         if (serverIslandsState.hasIslands()) {
+           for (const env of serverEnvironments) {
+             const mod = env.moduleGraph.getModuleById(RESOLVED_SERVER_ISLAND_MANIFEST);
+-            if (mod) {
+-              env.moduleGraph.invalidateModule(mod);
++            // Patched: reset only this module instead of `invalidateModule(mod)`. It's consumed via a
++            // dynamic `import()` (manifest.serverIslandMappings), so dropping its transform result is
++            // enough for the next import to get the fresh map. `invalidateModule` also cascades to
++            // importers — with the Cloudflare adapter that's Astro's pre-bundled runtime, `astro:actions`
++            // and nearly every component — so each first-time .astro transform made the worker
++            // re-evaluate them mid-request and concurrent requests got partial exports (`actions` undefined).
++            if (mod?.transformResult) {
++              env.moduleGraph.etagToModuleMap?.delete(mod.transformResult.etag);
++              mod.transformResult = null;
+             }
+           }
+         }
+diff --git a/dist/vite-plugin-head/index.js b/dist/vite-plugin-head/index.js
+index 9e52c070ff7af193d8e838d088c2163b0ec3be24..8098c74fb54b9d6e438791e3a110230ca09cc06c 100644
+--- a/dist/vite-plugin-head/index.js
++++ b/dist/vite-plugin-head/index.js
+@@ -20,8 +20,12 @@ function configHeadVitePlugin() {
+   function invalidateComponentMetadataModule() {
+     for (const env of environments) {
+       const virtualMod = env.moduleGraph.getModuleById(RESOLVED_VIRTUAL_COMPONENT_METADATA);
+-      if (virtualMod) {
+-        env.moduleGraph.invalidateModule(virtualMod);
++      // Patched: reset only this module instead of `invalidateModule(virtualMod)` (runs on every
++      // transform). It's read via a dynamic `import()` per request (dev-nonrunnable headElements), so
++      // cascading to importers — Astro's pre-bundled runtime chunks — only forces needless re-evaluation.
++      if (virtualMod?.transformResult) {
++        env.moduleGraph.etagToModuleMap?.delete(virtualMod.transformResult.etag);
++        virtualMod.transformResult = null;
+       }
+     }
+   }
+diff --git a/src/core/README.md b/src/core/README.md
+deleted file mode 100644
+index f396c01c557b5c1193a5f8d0c17f8727f2ee9350..0000000000000000000000000000000000000000
+diff --git a/src/types/README.md b/src/types/README.md
+deleted file mode 100644
+index 10331210628e88a9cd869cadcceabc5009d73747..0000000000000000000000000000000000000000
