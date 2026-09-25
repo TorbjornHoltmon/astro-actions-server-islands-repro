@@ -12,7 +12,7 @@ importers:
   .:
     dependencies:
       '@astrojs/cloudflare':
-        specifier: ^14.3.3
+        specifier: 14.3.3
         version: 14.3.3(astro@7.3.4(patch_hash=ee6be48926e4a341beb5ee4dd28916496ee163a3c61a0480450c547cf54565f6)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3))(esbuild@0.28.2)(wrangler@4.138.0)
       astro:
         specifier: 7.3.4
