@@ -2,7 +2,9 @@ name: Reproduce deferred-island actions failure
 
 on:
   push:
+    branches: ['**']
   pull_request:
+    branches: ['**']
   workflow_dispatch:
 
 permissions:
