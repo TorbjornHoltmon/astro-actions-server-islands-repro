@@ -40,7 +40,8 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
 
       - name: Verify that pnpm applied the patch
-        run: rg -F 'Patched: reset only this module' node_modules/.pnpm/astro@7.3.4*/node_modules/astro/dist/core/server-islands/vite-plugin-server-islands.js
+        run: |
+          rg -F 'Patched: reset only this module' node_modules/.pnpm/astro@7.3.4*/node_modules/astro/dist/core/server-islands/vite-plugin-server-islands.js
 
       - run: pnpm exec playwright install --with-deps chromium
 
