@@ -5,6 +5,7 @@
   "scripts": {
     "predev": "pnpm run generate:types",
     "dev": "astro dev",
+    "repro:playwright": "node scripts/repro-playwright.mjs",
     "generate:types": "wrangler types --config wrangler.jsonc"
   },
   "dependencies": {
@@ -12,6 +13,7 @@
     "astro": "7.3.4"
   },
   "devDependencies": {
+    "playwright": "1.58.2",
     "wrangler": "4.138.0"
   }
 }

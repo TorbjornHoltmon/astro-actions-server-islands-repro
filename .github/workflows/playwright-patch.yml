@@ -1,0 +1,49 @@
+name: Verify patch prevents deferred-island actions failure
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-patch:
+    name: Ubuntu / Node 24
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REPRO_BURST: 3
+      REPRO_RELOADS: 20
+      REPRO_EXPECT: healthy
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+
+      - name: Enable the local Astro patch
+        run: |
+          sed -i \
+            -e 's/^# patchedDependencies:/patchedDependencies:/' \
+            -e 's|^#   astro@7.3.4: patches/astro@7.3.4.patch|  astro@7.3.4: patches/astro@7.3.4.patch|' \
+            pnpm-workspace.yaml
+
+      - run: pnpm install --no-frozen-lockfile
+
+      - name: Verify that pnpm applied the patch
+        run: rg -F 'Patched: reset only this module' node_modules/.pnpm/astro@7.3.4*/node_modules/astro/dist/core/server-islands/vite-plugin-server-islands.js
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # This command exits non-zero if the original deferred-island failure
+      # appears during the same browser reload sequence.
+      - run: pnpm run repro:playwright

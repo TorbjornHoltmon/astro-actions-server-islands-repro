@@ -1,0 +1,38 @@
+name: Reproduce deferred-island actions failure
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    name: Ubuntu / Node 24
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REPRO_BURST: 3
+      REPRO_RELOADS: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # This command exits successfully only after the Astro dev server logs
+      # the persistent deferred-island `actionName` failure.
+      - run: pnpm run repro:playwright
