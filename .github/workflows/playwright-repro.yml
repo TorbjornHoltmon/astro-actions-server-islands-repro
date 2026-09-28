@@ -29,7 +29,10 @@ jobs:
           node-version: 24.19.0
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Disable the local Astro patch
+        run: sed -i '/^patchedDependencies:/,$d' pnpm-workspace.yaml
+
+      - run: pnpm install --no-frozen-lockfile
 
       - run: pnpm exec playwright install --with-deps chromium
 

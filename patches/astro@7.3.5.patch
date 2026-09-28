@@ -1,0 +1,46 @@
+diff --git a/dist/core/server-islands/vite-plugin-server-islands.js b/dist/core/server-islands/vite-plugin-server-islands.js
+index d76b16113bfe83c096f67aaed26cbdfac4d9ee70..8abd3d69084f871f135a1ac37af0af15e2589ea3 100644
+--- a/dist/core/server-islands/vite-plugin-server-islands.js
++++ b/dist/core/server-islands/vite-plugin-server-islands.js
+@@ -110,8 +110,16 @@ export const serverIslandNameMap = ${serverIslandPlaceholderNameMap};`
+         if (serverIslandsState.hasIslands()) {
+           for (const env of serverEnvironments) {
+             const mod = env.moduleGraph.getModuleById(RESOLVED_SERVER_ISLAND_MANIFEST);
+-            if (mod) {
+-              env.moduleGraph.invalidateModule(mod);
++            // Clear only the transform result so the next dynamic import()
++            // re-runs load/transform. A full invalidateModule() would cascade
++            // to all importers, which in pre-bundled environments (e.g.
++            // Cloudflare) includes the entire SSR module graph — causing
++            // concurrent requests to observe partially-initialized modules.
++            // See https://github.com/withastro/astro/issues/18132
++            if (mod?.transformResult) {
++              const etag = mod.transformResult.etag;
++              if (etag) env.moduleGraph.etagToModuleMap.delete(etag);
++              mod.transformResult = null;
+             }
+           }
+         }
+diff --git a/dist/vite-plugin-head/index.js b/dist/vite-plugin-head/index.js
+index 9e52c070ff7af193d8e838d088c2163b0ec3be24..f3c3c67749e2c7be33c1d5234986703401787fd4 100644
+--- a/dist/vite-plugin-head/index.js
++++ b/dist/vite-plugin-head/index.js
+@@ -20,8 +20,16 @@ function configHeadVitePlugin() {
+   function invalidateComponentMetadataModule() {
+     for (const env of environments) {
+       const virtualMod = env.moduleGraph.getModuleById(RESOLVED_VIRTUAL_COMPONENT_METADATA);
+-      if (virtualMod) {
+-        env.moduleGraph.invalidateModule(virtualMod);
++      // Clear only the transform result so the next dynamic import()
++      // re-runs load/transform. A full invalidateModule() would cascade
++      // to all importers, which in pre-bundled environments (e.g.
++      // Cloudflare) includes the entire SSR module graph — causing
++      // concurrent requests to observe partially-initialized modules.
++      // See https://github.com/withastro/astro/issues/18132
++      if (virtualMod?.transformResult) {
++        const etag = virtualMod.transformResult.etag;
++        if (etag) env.moduleGraph.etagToModuleMap.delete(etag);
++        virtualMod.transformResult = null;
+       }
+     }
+   }
