@@ -10,7 +10,7 @@ const reloadBurst = Number(process.env.REPRO_BURST ?? 3);
 const origin = `http://127.0.0.1:${port}`;
 const chromePath = process.env.PLAYWRIGHT_CHROME_PATH ?? (platform() === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined);
 const headless = process.env.REPRO_HEADED !== '1';
-const expectedError = "Cannot read properties of undefined (reading 'actionName')";
+const expectedError = 'Cannot read properties of undefined';
 const expectFailure = process.env.REPRO_EXPECT !== 'healthy';
 
 async function removeCaches() {

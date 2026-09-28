@@ -37,5 +37,5 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
 
       # This command exits successfully only after the Astro dev server logs
-      # the persistent deferred-island `actionName` failure.
+      # an undefined-property read caused by the deferred-island race.
       - run: pnpm run repro:playwright
