@@ -1,4 +1,4 @@
-name: Verify patch prevents deferred-island actions failure
+name: "Verify Astro #18132 patch"
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  verify-patch:
+  verify:
     name: Ubuntu / Node 24
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -32,12 +32,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Verify that pnpm applied the patch
+      - name: Verify that pnpm applied the Astro patch
         run: |
           grep -F 'Clear only the transform result' node_modules/.pnpm/astro@7.3.5*/node_modules/astro/dist/core/server-islands/vite-plugin-server-islands.js
 
       - run: pnpm exec playwright install --with-deps chromium
 
-      # This command exits non-zero if the original deferred-island failure
-      # appears during the same browser reload sequence.
+      # This command fails if an undefined-property read occurs during the
+      # repeated deferred-island request sequence.
       - run: pnpm run repro:playwright
